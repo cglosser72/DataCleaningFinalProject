@@ -86,10 +86,14 @@ get_data <- function() {
   activities <- read.table("./UCI HAR Dataset/activity_labels.txt", sep= ' ')
   X_train <- read.fwf("./UCI HAR Dataset/train/X_train.txt",widths=rep(16,561))
   y_train <- read.fwf("./UCI HAR Dataset/train/y_train.txt",widths=c(1))
+  sub_train <- read.fwf("./UCI HAR Dataset/train/subject_train.txt",widths=c(2))
+  colnames(sub_train) <- c('subject')    
   y_train <- merge(y_train, activities)
   colnames(y_train) <- c('activity_code','activity')
   X_test <- read.fwf("./UCI HAR Dataset/test/X_test.txt",widths=rep(16,561))
-  y_test <- read.fwf("./UCI HAR Dataset/test/y_test.txt",widths=c(1)) 
+  y_test <- read.fwf("./UCI HAR Dataset/test/y_test.txt",widths=c(1))
+  sub_test <- read.fwf("./UCI HAR Dataset/test/subject_test.txt",widths=c(2))
+  colnames(sub_test) <- c('subject')  
   y_test <- merge(y_test, activities)  
   colnames(y_test) <- c('activity_code','activity')
   colnames_x <- features[,2] %>%
@@ -104,8 +108,10 @@ get_data <- function() {
   list_of_cols <- list_of_cols | grepl('std', features[,2], ignore.case ="True")
   X_train_means <- X_train[,list_of_cols]
   X_train_means <- cbind(X_train_means, y_train)
+  X_train_means <- cbind(X_train_means, sub_train)  
   X_test_means <- X_test[,list_of_cols ]
   X_test_means <- cbind(X_test_means, y_test)
+  X_test_means <- cbind(X_test_means, sub_test)  
   X_train_means['test_or_train'] <- 'train'
   X_test_means['test_or_train'] <- 'test'
   X_union_means <-rbind(X_train_means, X_test_means)
@@ -114,7 +120,7 @@ get_data <- function() {
 
 get_summary <- function(df) {
   sum_df <- df %>% 
-    group_by(activity_code,activity,test_or_train) %>% 
+    group_by(activity_code,activity,subject) %>% 
     summarise_at(vars(colnames(df)[1:86]), mean) %>% 
     ungroup() %>% 
     as.data.frame()
